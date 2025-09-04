@@ -30,7 +30,17 @@ export function useChats() {
   useEffect(() => {
     if (isLoaded) {
       try {
-        localStorage.setItem(CHATS_STORAGE_KEY, JSON.stringify(chats));
+        // We need to handle the case where a message has a blob url, which can't be stringified
+        const chatsToStore = chats.map(chat => ({
+          ...chat,
+          messages: chat.messages.map(message => {
+            if (message.imageUrl && message.imageUrl.startsWith('blob:')) {
+              return { ...message, imageUrl: undefined }; // Don't store blob URLs
+            }
+            return message;
+          })
+        }));
+        localStorage.setItem(CHATS_STORAGE_KEY, JSON.stringify(chatsToStore));
       } catch (error) {
         console.error("Failed to save chats to localStorage", error);
       }

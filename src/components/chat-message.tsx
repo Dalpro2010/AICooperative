@@ -1,6 +1,7 @@
 "use client";
 
 import { User } from "lucide-react";
+import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import type { AIPersonality, Message } from "@/lib/types";
@@ -34,7 +35,7 @@ export default function ChatMessage({ message, personality }: ChatMessageProps) 
       )}
       <div
         className={cn(
-          "max-w-[80%] rounded-xl p-3 px-4 text-sm shadow-sm",
+          "max-w-[80%] rounded-xl p-3 px-4 text-sm shadow-sm flex flex-col gap-2",
           isUser
             ? "bg-primary text-primary-foreground rounded-br-none"
             : "bg-card rounded-bl-none border"
@@ -46,7 +47,22 @@ export default function ChatMessage({ message, personality }: ChatMessageProps) 
             <Skeleton className="h-4 w-[200px] bg-muted-foreground/20" />
           </div>
         ) : (
-          <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+          <>
+            {message.imageUrl && (
+              <Image
+                src={message.imageUrl}
+                alt="User provided image"
+                width={300}
+                height={300}
+                className="rounded-lg"
+              />
+            )}
+            {message.content && (
+              <p className="whitespace-pre-wrap leading-relaxed">
+                {message.content}
+              </p>
+            )}
+          </>
         )}
       </div>
     </div>

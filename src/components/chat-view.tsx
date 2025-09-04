@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useRef, useEffect } from "react";
-import { SendHorizonal, Download, CornerDownLeft } from "lucide-react";
+import Image from "next/image";
+import { SendHorizonal, Download, CornerDownLeft, ImagePlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -18,7 +19,9 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
   const { toast } = useToast();
   const [input, setInput] = React.useState("");
   const [isResponding, setIsResponding] = React.useState(false);
+  const [image, setImage] = React.useState<{ url: string; file: File } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -29,7 +32,23 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
       });
     }
   }, [activeChat?.messages]);
-  
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const url = URL.createObjectURL(file);
+      setImage({ url, file });
+    }
+  };
+
+  const toBase64 = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+
   const handleExport = () => {
     if (!activeChat) return;
     const conversation = activeChat.messages
@@ -50,13 +69,20 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || !activeChat || isResponding) return;
+    if ((!input.trim() && !image) || !activeChat || isResponding) return;
 
     const userInput = input;
+    const userImage = image;
+
     setInput("");
+    setImage(null);
     setIsResponding(true);
 
-    addMessage(activeChat.id, { role: "user", content: userInput });
+    addMessage(activeChat.id, { 
+      role: "user", 
+      content: userInput,
+      imageUrl: userImage?.url
+    });
     addMessage(activeChat.id, {
       role: "assistant",
       content: "",
@@ -64,6 +90,11 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
     });
 
     try {
+      let photoDataUri: string | undefined = undefined;
+      if (userImage) {
+        photoDataUri = await toBase64(userImage.file);
+      }
+
       const personality = personalities.find(p => p.id === activeChat.personalityId);
       const chatHistory = activeChat.messages
         .map((m) => `${m.role}: ${m.content}`)
@@ -73,6 +104,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
         personality: personality?.prompt || 'helpful assistant',
         userMessage: userInput,
         chatHistory: chatHistory,
+        photoDataUri: photoDataUri,
       });
 
       updateLastMessage(activeChat.id, {
@@ -123,11 +155,24 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
           onSubmit={handleSubmit}
           className="relative"
         >
+          {image && (
+            <div className="relative mb-2 w-24 h-24">
+              <Image src={image.url} alt="Image preview" layout="fill" objectFit="cover" className="rounded-md" />
+              <Button
+                size="icon"
+                variant="destructive"
+                className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                onClick={() => setImage(null)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Escribe un mensaje..."
-            className="pr-20 min-h-[60px] resize-none"
+            className="pr-28 min-h-[60px] resize-none"
             disabled={isResponding}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -137,16 +182,27 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
             }}
           />
           <div className="absolute top-1/2 right-3 -translate-y-1/2 flex items-center gap-2">
-            <p className="text-xs text-muted-foreground hidden md:block">
-              <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                <CornerDownLeft size={12}/>
-              </kbd>{" "}
-              Enviar
-            </p>
+             <input
+              type="file"
+              ref={imageInputRef}
+              onChange={handleImageChange}
+              className="hidden"
+              accept="image/*"
+            />
+             <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => imageInputRef.current?.click()}
+              disabled={isResponding}
+              aria-label="Adjuntar imagen"
+            >
+              <ImagePlus className="h-5 w-5" />
+            </Button>
             <Button
               type="submit"
               size="icon"
-              disabled={!input.trim() || isResponding}
+              disabled={(!input.trim() && !image) || isResponding}
               aria-label="Enviar mensaje"
             >
               <SendHorizonal className="h-5 w-5" />

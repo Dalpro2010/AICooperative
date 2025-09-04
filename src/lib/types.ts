@@ -5,6 +5,7 @@ export type Message = {
   role: "user" | "assistant";
   content: string;
   isLoading?: boolean;
+  imageUrl?: string;
 };
 
 export type AIPersonality = {

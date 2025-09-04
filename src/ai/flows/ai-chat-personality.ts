@@ -17,6 +17,9 @@ const AIChatPersonalityInputSchema = z.object({
     .describe("The desired AI personality (e.g., programmer, therapist, creative writer)."),
   userMessage: z.string().describe('The user message to be processed.'),
   chatHistory: z.string().describe('The chat history.'),
+  photoDataUri: z.string().optional().describe(
+    "A photo from the user, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+  ),
 });
 export type AIChatPersonalityInput = z.infer<typeof AIChatPersonalityInputSchema>;
 
@@ -40,6 +43,10 @@ Chat History:
 
 User Message:
 {{{userMessage}}}
+{{#if photoDataUri}}
+[User has provided an image]
+Photo: {{media url=photoDataUri}}
+{{/if}}
 
 Response:`,
 });
