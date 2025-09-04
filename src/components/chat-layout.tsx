@@ -1,6 +1,8 @@
 "use client";
 
 import type { useChats } from "@/hooks/use-chats";
+import Link from "next/link";
+import { Settings } from "lucide-react";
 import {
   SidebarProvider,
   Sidebar,
@@ -15,6 +17,7 @@ import ChatView from "@/components/chat-view";
 import EmptyChat from "@/components/empty-chat";
 import ThemeToggle from "@/components/theme-toggle";
 import { Skeleton } from "./ui/skeleton";
+import { Button } from "./ui/button";
 
 type ChatLayoutProps = ReturnType<typeof useChats>;
 
@@ -53,11 +56,19 @@ export default function ChatLayout(props: ChatLayoutProps) {
         </Sidebar>
 
         <SidebarInset className="p-0 flex flex-col">
-          <header className="flex items-center gap-2 p-3 border-b h-14">
-            <SidebarTrigger className="md:hidden" />
-            <h2 className="text-lg font-semibold font-headline truncate">
-              {activeChat?.name || "Welcome"}
-            </h2>
+          <header className="flex items-center justify-between gap-2 p-3 border-b h-14">
+            <div className="flex items-center gap-2 truncate">
+              <SidebarTrigger className="md:hidden" />
+              <h2 className="text-lg font-semibold font-headline truncate">
+                {activeChat?.name || "Welcome"}
+              </h2>
+            </div>
+            <Link href="/settings">
+              <Button variant="ghost" size="icon" className="rounded-full flex-shrink-0">
+                <Settings className="h-5 w-5" />
+                <span className="sr-only">Ajustes</span>
+              </Button>
+            </Link>
           </header>
           <main className="flex-1 overflow-y-auto">
             {activeChat ? <ChatView {...props} /> : <EmptyChat />}
