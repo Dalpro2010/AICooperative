@@ -22,6 +22,7 @@ const AIChatPersonalityInputSchema = z.object({
   photoDataUri: z.string().optional().describe(
     "A photo from the user, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
   ),
+  availableModels: z.array(z.enum(["gemini", "chatgpt", "claude"])).describe("A list of available models based on user's API keys.")
 });
 export type AIChatPersonalityInput = z.infer<typeof AIChatPersonalityInputSchema>;
 
@@ -60,20 +61,45 @@ const aiChatPersonalityFlow = ai.defineFlow(
     outputSchema: AIChatPersonalityOutputSchema,
   },
   async input => {
-    let model: AIModel = input.model;
-    if (model === "automatic") {
-      // Placeholder logic for automatic model selection
-      const models: AIModel[] = ["gemini", "chatgpt", "claude"];
-      model = models[Math.floor(Math.random() * models.length)];
-      console.log("Automatic model selection chose:", model);
+    let modelToUse: AIModel | null = null;
+    const { model, availableModels } = input;
+
+    if (availableModels.length === 0) {
+      return {
+        response: "Por favor, configura al menos una clave de API en los Ajustes para poder chatear."
+      };
     }
     
-    // Here you would add logic to call the specific model API
-    // For now, we will simulate the response as if it came from the selected model
-    // and just use the default genkit model.
-    if (model === 'chatgpt' || model === 'claude') {
+    if (availableModels.length === 1) {
+      modelToUse = availableModels[0];
+      console.log(`Only one model available, forcing use of: ${modelToUse}`);
+    } else {
+      if (model === 'automatic') {
+        // If automatic and multiple models are available, pick one randomly.
+        // This could be replaced with more sophisticated logic in the future.
+        modelToUse = availableModels[Math.floor(Math.random() * availableModels.length)];
+        console.log(`Automatic selection chose: ${modelToUse}`);
+      } else {
+        // If a specific model is selected, check if it's available.
+        if (availableModels.includes(model)) {
+          modelToUse = model;
+        } else {
+          // Fallback to the first available model if the selected one is not configured.
+          modelToUse = availableModels[0];
+          console.log(`Selected model "${model}" not available, falling back to: ${modelToUse}`);
+        }
+      }
+    }
+
+    if (!modelToUse) {
+         return {
+            response: "No se pudo determinar qué modelo de IA usar. Por favor, comprueba tus ajustes de clave de API."
+        }
+    }
+    
+    if (modelToUse === 'chatgpt' || modelToUse === 'claude') {
         return {
-            response: `(Simulado desde ${model}) Hola, soy un asistente con la personalidad de ${input.personality}. ¿En qué puedo ayudarte hoy?`
+            response: `(Simulado desde ${modelToUse}) Hola, soy un asistente con la personalidad de ${input.personality}. ¿En qué puedo ayudarte hoy?`
         }
     }
 

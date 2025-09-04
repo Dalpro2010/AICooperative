@@ -11,8 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import type { useChats } from "@/hooks/use-chats";
 import { aiChatPersonality } from "@/ai/flows/ai-chat-personality";
 import { personalities } from "@/lib/personalities";
-import type { Message } from "@/lib/types";
-import { useSettings } from "@/hooks/use-settings";
+import type { Message, AIModel } from "@/lib/types";
+import { useSettings } from "@/hooks/use-settings.tsx";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
@@ -37,15 +37,20 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
     }
   }, [activeChat?.messages]);
   
+  const availableModels = React.useMemo(() => {
+    if (!settingsLoaded) return [];
+    const models: AIModel[] = [];
+    if (settings.geminiApiKey) models.push("gemini");
+    if (settings.chatgptApiKey) models.push("chatgpt");
+    if (settings.claudeApiKey) models.push("claude");
+    return models;
+  }, [settings, settingsLoaded]);
+
   const isApiKeyMissing = React.useMemo(() => {
-    if (!settingsLoaded || !activeChat) return false;
-    const model = activeChat.model;
-    if (model === "gemini" && !settings.geminiApiKey) return true;
-    if (model === "chatgpt" && !settings.chatgptApiKey) return true;
-    if (model === "claude" && !settings.claudeApiKey) return true;
-    if (model === "automatic" && !settings.geminiApiKey && !settings.chatgptApiKey && !settings.claudeApiKey) return true;
-    return false;
-  }, [settings, activeChat, settingsLoaded]);
+    if (!settingsLoaded) return true;
+    return availableModels.length === 0;
+  }, [settingsLoaded, availableModels]);
+
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -70,7 +75,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
     if (isApiKeyMissing) {
       toast({
         title: "Falta la clave de API",
-        description: "Por favor, configura la clave de API para el modelo seleccionado en los ajustes.",
+        description: "Por favor, configura al menos una clave de API en los ajustes.",
         variant: "destructive",
       });
       return;
@@ -111,6 +116,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
         chatHistory: chatHistory,
         model: activeChat.model,
         photoDataUri: photoDataUri,
+        availableModels: availableModels as ('gemini' | 'chatgpt' | 'claude')[],
       });
 
       updateLastMessage(activeChat.id, {
@@ -149,12 +155,12 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
         </div>
       </ScrollArea>
       <div className="p-4 border-t">
-        {isApiKeyMissing ? (
+        {isApiKeyMissing && settingsLoaded ? (
             <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Falta la clave de API</AlertTitle>
+                <AlertTitle>Faltan claves de API</AlertTitle>
                 <AlertDescription>
-                    Por favor, ve a <Link href="/settings" className="font-semibold underline">Ajustes</Link> para configurar la clave de API para el modelo de este chat.
+                    Por favor, ve a <Link href="/settings" className="font-semibold underline">Ajustes</Link> para configurar al menos una clave de API.
                 </AlertDescription>
             </Alert>
         ) : (
@@ -181,7 +187,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
               onChange={(e) => setInput(e.target.value)}
               placeholder="Escribe un mensaje..."
               className="pr-28 min-h-[60px] resize-none"
-              disabled={isResponding}
+              disabled={isResponding || !settingsLoaded}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -202,7 +208,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
                 variant="ghost"
                 size="icon"
                 onClick={() => imageInputRef.current?.click()}
-                disabled={isResponding}
+                disabled={isResponding || !settingsLoaded}
                 aria-label="Adjuntar imagen"
               >
                 <ImagePlus className="h-5 w-5" />
@@ -210,7 +216,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
               <Button
                 type="submit"
                 size="icon"
-                disabled={(!input.trim() && !image) || isResponding}
+                disabled={(!input.trim() && !image) || isResponding || !settingsLoaded}
                 aria-label="Enviar mensaje"
               >
                 <SendHorizonal className="h-5 w-5" />
