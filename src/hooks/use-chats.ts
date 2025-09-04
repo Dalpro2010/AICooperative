@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import type { Chat, Message, AIPersonality } from "@/lib/types";
-import { personalities } from "@/lib/personalities";
+import type { Chat, Message, AIPersonality, AIModel } from "@/lib/types";
 
 const CHATS_STORAGE_KEY = "aiCooperativeChats";
 
@@ -47,13 +46,14 @@ export function useChats() {
     }
   }, [chats, isLoaded]);
 
-  const createChat = useCallback((personality: AIPersonality) => {
+  const createChat = useCallback((personality: AIPersonality, model: AIModel) => {
     const newChat: Chat = {
       id: crypto.randomUUID(),
       name: `Nuevo Chat - ${personality.name}`,
       personalityId: personality.id,
       messages: [],
       createdAt: new Date().toISOString(),
+      model: model,
     };
     setChats((prevChats) => [newChat, ...prevChats]);
     setActiveChatId(newChat.id);
@@ -93,6 +93,7 @@ export function useChats() {
       prevChats.map((chat) => {
         if (chat.id === chatId) {
           const lastMessage = chat.messages[chat.messages.length - 1];
+          if (!lastMessage) return chat;
           const updatedMessages = [...chat.messages.slice(0, -1), { ...lastMessage, ...updatedMessageContent }];
           return { ...chat, messages: updatedMessages };
         }

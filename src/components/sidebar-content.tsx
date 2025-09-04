@@ -1,11 +1,7 @@
 "use client";
 
-import {
-  MoreHorizontal,
-  Plus,
-  Trash2,
-  Edit,
-} from "lucide-react";
+import React from "react";
+import { MoreHorizontal, Plus, Trash2, Edit, ArrowLeft } from "lucide-react";
 import {
   SidebarMenu,
   SidebarMenuItem,
@@ -13,7 +9,8 @@ import {
   SidebarMenuAction,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { personalities } from "@/lib/personalities";
+import { personalities, models } from "@/lib/personalities";
+import type { AIModel } from "@/lib/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,12 +34,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "./ui/input";
-import React from "react";
 import type { useChats } from "@/hooks/use-chats";
-
-type SidebarContentProps = ReturnType<typeof useChats>;
 
 function RenameChatDialog({
   chatName,
@@ -96,6 +91,94 @@ function RenameChatDialog({
   );
 }
 
+function NewChatDialog({ createChat }: { createChat: (p: any, m: AIModel) => void }) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [step, setStep] = React.useState<"model" | "personality">("model");
+  const [selectedModel, setSelectedModel] = React.useState<AIModel | null>(null);
+
+  const handleModelSelect = (model: AIModel) => {
+    setSelectedModel(model);
+    setStep("personality");
+  };
+
+  const handlePersonalitySelect = (personality: any) => {
+    if (selectedModel) {
+      createChat(personality, selectedModel);
+      setIsOpen(false);
+      setStep("model");
+      setSelectedModel(null);
+    }
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (!open) {
+      setTimeout(() => {
+        setStep("model");
+        setSelectedModel(null);
+      }, 300);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
+        <Button className="w-full justify-start">
+          <Plus className="mr-2" />
+          Nuevo Chat
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          {step === "personality" && (
+            <Button variant="ghost" size="sm" className="absolute left-4 top-4 px-2" onClick={() => setStep("model")}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver
+            </Button>
+          )}
+          <DialogTitle>
+            {step === "model" ? "Elige un Modelo de IA" : "Elige una Personalidad"}
+          </DialogTitle>
+          <DialogDescription>
+            {step === 'model' ? 'Selecciona la IA que potenciará tu conversación.' : 'Cada personalidad ofrece una experiencia de chat única.'}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {step === "model" &&
+            models.map((m) => (
+              <button
+                key={m.id}
+                className="p-4 border rounded-lg hover:bg-accent text-left flex items-start gap-4 transition-colors"
+                onClick={() => handleModelSelect(m.id as AIModel)}
+              >
+                <m.icon className="h-6 w-6 text-primary mt-1 shrink-0" />
+                <div>
+                  <h3 className="font-semibold">{m.name}</h3>
+                  <p className="text-sm text-muted-foreground">{m.description}</p>
+                </div>
+              </button>
+            ))}
+          {step === "personality" &&
+            personalities.map((p) => (
+              <button
+                key={p.id}
+                className="p-4 border rounded-lg hover:bg-accent text-left flex items-start gap-4 transition-colors"
+                onClick={() => handlePersonalitySelect(p)}
+              >
+                <p.icon className="h-6 w-6 text-primary mt-1 shrink-0" />
+                <div>
+                  <h3 className="font-semibold">{p.name}</h3>
+                  <p className="text-sm text-muted-foreground">{p.description}</p>
+                </div>
+              </button>
+            ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
 export default function SidebarContent({
   chats,
   activeChatId,
@@ -104,49 +187,17 @@ export default function SidebarContent({
   renameChat,
   setActiveChatId,
 }: SidebarContentProps) {
-  const [newChatDialogOpen, setNewChatDialogOpen] = React.useState(false);
 
   return (
     <div className="flex flex-col h-full p-2">
-      <Dialog open={newChatDialogOpen} onOpenChange={setNewChatDialogOpen}>
-        <DialogTrigger asChild>
-          <Button className="w-full justify-start">
-            <Plus className="mr-2" />
-            Nuevo Chat
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Elige una Personalidad de IA</DialogTitle>
-          </DialogHeader>
-          <div className="py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {personalities.map((p) => (
-              <button
-                key={p.id}
-                className="p-4 border rounded-lg hover:bg-accent text-left flex items-start gap-4 transition-colors"
-                onClick={() => {
-                  createChat(p);
-                  setNewChatDialogOpen(false);
-                }}
-              >
-                <p.icon className="h-6 w-6 text-primary mt-1 shrink-0" />
-                <div>
-                  <h3 className="font-semibold">{p.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {p.description}
-                  </p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <NewChatDialog createChat={createChat} />
       <SidebarMenu className="mt-4 flex-1">
         {chats.map((chat) => {
           const personality = personalities.find(
             (p) => p.id === chat.personalityId
           );
-          const Icon = personality?.icon || personalities[personalities.length-1].icon;
+          const modelInfo = models.find(m => m.id === chat.model) || models.find(m => m.id === "gemini");
+          const Icon = modelInfo?.icon || personalities[personalities.length-1].icon;
 
           return (
             <SidebarMenuItem key={chat.id}>

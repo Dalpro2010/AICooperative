@@ -86,6 +86,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
         personality: personality?.prompt || 'helpful assistant',
         userMessage: userInput,
         chatHistory: chatHistory,
+        model: activeChat.model,
         photoDataUri: photoDataUri,
       });
 

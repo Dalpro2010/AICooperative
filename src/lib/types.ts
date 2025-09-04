@@ -16,10 +16,13 @@ export type AIPersonality = {
   prompt: string;
 };
 
+export type AIModel = "gemini" | "chatgpt" | "claude" | "automatic";
+
 export type Chat = {
   id: string;
   name: string;
   personalityId: string;
   messages: Message[];
   createdAt: string;
+  model: AIModel;
 };

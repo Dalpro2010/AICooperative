@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { AIModel } from '@/lib/types';
 
 const AIChatPersonalityInputSchema = z.object({
   personality: z
@@ -17,6 +18,7 @@ const AIChatPersonalityInputSchema = z.object({
     .describe("The desired AI personality (e.g., programmer, therapist, creative writer)."),
   userMessage: z.string().describe('The user message to be processed.'),
   chatHistory: z.string().describe('The chat history.'),
+  model: z.enum(["gemini", "chatgpt", "claude", "automatic"]).describe("The AI model to use."),
   photoDataUri: z.string().optional().describe(
     "A photo from the user, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
   ),
@@ -58,6 +60,23 @@ const aiChatPersonalityFlow = ai.defineFlow(
     outputSchema: AIChatPersonalityOutputSchema,
   },
   async input => {
+    let model: AIModel = input.model;
+    if (model === "automatic") {
+      // Placeholder logic for automatic model selection
+      const models: AIModel[] = ["gemini", "chatgpt", "claude"];
+      model = models[Math.floor(Math.random() * models.length)];
+      console.log("Automatic model selection chose:", model);
+    }
+    
+    // Here you would add logic to call the specific model API
+    // For now, we will simulate the response as if it came from the selected model
+    // and just use the default genkit model.
+    if (model === 'chatgpt' || model === 'claude') {
+        return {
+            response: `(Simulado desde ${model}) Hola, soy un asistente con la personalidad de ${input.personality}. ¿En qué puedo ayudarte hoy?`
+        }
+    }
+
     const {output} = await prompt(input);
     return output!;
   }

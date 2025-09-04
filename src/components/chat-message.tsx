@@ -6,15 +6,20 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import type { AIPersonality, Message } from "@/lib/types";
 import { Skeleton } from "./ui/skeleton";
+import { models } from "@/lib/personalities";
 
 interface ChatMessageProps {
   message: Message;
   personality?: AIPersonality;
+  modelId?: string;
 }
 
-export default function ChatMessage({ message, personality }: ChatMessageProps) {
+export default function ChatMessage({ message, personality, modelId }: ChatMessageProps) {
   const isUser = message.role === "user";
-  const Icon = personality?.icon || User;
+  
+  const model = models.find(m => m.id === modelId);
+  const Icon = !isUser ? (model?.icon || User) : User;
+
 
   return (
     <div

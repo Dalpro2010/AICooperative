@@ -1,5 +1,12 @@
-import { Bot, Code, GraduationCap, Heart, Sparkles } from "lucide-react";
-import type { AIPersonality } from "./types";
+import { Bot, Code, GraduationCap, Heart, Sparkles, BrainCircuit } from "lucide-react";
+import type { AIPersonality, AIModel } from "./types";
+
+export const models: { id: AIModel | "all"; name: string; icon: LucideIcon; description: string }[] = [
+    { id: "automatic", name: "Automático", icon: BrainCircuit, description: "La IA elige el mejor modelo para ti." },
+    { id: "gemini", name: "Gemini", icon: Sparkles, description: "El modelo más avanzado de Google." },
+    { id: "chatgpt", name: "ChatGPT", icon: Bot, description: "El popular modelo de OpenAI." },
+    { id: "claude", name: "Claude", icon: Bot, description: "El modelo conversacional de Anthropic." },
+];
 
 export const personalities: AIPersonality[] = [
   {
