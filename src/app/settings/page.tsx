@@ -7,9 +7,12 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function SettingsPage() {
   return (
@@ -27,18 +30,42 @@ export default function SettingsPage() {
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
           <Card>
             <CardHeader>
-              <CardTitle>Preferencias de la aplicación</CardTitle>
+              <CardTitle>API Keys</CardTitle>
               <CardDescription>
-                Gestiona la configuración de tu aplicación.
+                Gestiona las claves de API para los diferentes modelos de IA.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form className="grid gap-6">
-                <p className="text-sm text-muted-foreground">
-                  Aquí es donde aparecerán los futuros ajustes de la aplicación.
-                </p>
+                <div className="grid gap-3">
+                  <Label htmlFor="gemini-api-key">Gemini API Key</Label>
+                  <Input
+                    id="gemini-api-key"
+                    type="password"
+                    placeholder="Introduce tu clave de API de Gemini"
+                  />
+                </div>
+                <div className="grid gap-3">
+                  <Label htmlFor="chatgpt-api-key">ChatGPT API Key</Label>
+                  <Input
+                    id="chatgpt-api-key"
+                    type="password"
+                    placeholder="Introduce tu clave de API de ChatGPT"
+                  />
+                </div>
+                <div className="grid gap-3">
+                  <Label htmlFor="claude-api-key">Claude API Key</Label>
+                  <Input
+                    id="claude-api-key"
+                    type="password"
+                    placeholder="Introduce tu clave de API de Claude"
+                  />
+                </div>
               </form>
             </CardContent>
+            <CardFooter className="border-t px-6 py-4">
+              <Button>Guardar</Button>
+            </CardFooter>
           </Card>
         </main>
       </div>
