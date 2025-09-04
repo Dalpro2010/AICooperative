@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect } from "react";
 import Image from "next/image";
-import { SendHorizonal, Download, CornerDownLeft, ImagePlus, X } from "lucide-react";
+import { SendHorizonal, ImagePlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -48,24 +48,6 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
       reader.onload = () => resolve(reader.result as string);
       reader.onerror = (error) => reject(error);
     });
-
-  const handleExport = () => {
-    if (!activeChat) return;
-    const conversation = activeChat.messages
-      .map(
-        (msg) =>
-          `${msg.role === "user" ? "You" : activeChat.name}:\n${msg.content}`
-      )
-      .join("\n\n");
-    const blob = new Blob([conversation], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${activeChat.name.replace(/\s/g, "_")}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,13 +113,6 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
 
   return (
     <div className="h-full flex flex-col">
-      <div className="p-4 border-b flex justify-between items-center">
-        <h2 className="text-lg font-semibold font-headline">{activeChat.name}</h2>
-        <Button variant="ghost" size="icon" onClick={handleExport} aria-label="Exportar conversación">
-          <Download className="h-4 w-4" />
-        </Button>
-      </div>
-
       <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
         <div className="space-y-6">
           {activeChat.messages.map((message: Message) => (
