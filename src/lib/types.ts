@@ -26,3 +26,9 @@ export type Chat = {
   createdAt: string;
   model: AIModel;
 };
+
+export type AppSettings = {
+  geminiApiKey: string | null;
+  chatgptApiKey: string | null;
+  claudeApiKey: string | null;
+}

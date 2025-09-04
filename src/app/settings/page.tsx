@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,8 +14,31 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useSettings } from "@/hooks/use-settings";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SettingsPage() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const { settings, setSetting, isLoaded } = useSettings();
+
+  const handleSave = () => {
+    // The settings are already saved on change by the hook
+    toast({
+      title: "Ajustes guardados",
+      description: "Tus claves de API han sido guardadas correctamente.",
+    });
+    router.push("/");
+  };
+
+  if (!isLoaded) {
+    return (
+      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/40">
+        <p>Cargando ajustes...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <div className="flex flex-col sm:gap-4 sm:py-4">
@@ -43,6 +67,8 @@ export default function SettingsPage() {
                     id="gemini-api-key"
                     type="password"
                     placeholder="Introduce tu clave de API de Gemini"
+                    value={settings.geminiApiKey || ""}
+                    onChange={(e) => setSetting("geminiApiKey", e.target.value)}
                   />
                 </div>
                 <div className="grid gap-3">
@@ -51,6 +77,8 @@ export default function SettingsPage() {
                     id="chatgpt-api-key"
                     type="password"
                     placeholder="Introduce tu clave de API de ChatGPT"
+                    value={settings.chatgptApiKey || ""}
+                    onChange={(e) => setSetting("chatgptApiKey", e.target.value)}
                   />
                 </div>
                 <div className="grid gap-3">
@@ -59,12 +87,14 @@ export default function SettingsPage() {
                     id="claude-api-key"
                     type="password"
                     placeholder="Introduce tu clave de API de Claude"
+                    value={settings.claudeApiKey || ""}
+                    onChange={(e) => setSetting("claudeApiKey", e.target.value)}
                   />
                 </div>
               </form>
             </CardContent>
             <CardFooter className="border-t px-6 py-4">
-              <Button>Guardar</Button>
+              <Button onClick={handleSave}>Guardar</Button>
             </CardFooter>
           </Card>
         </main>

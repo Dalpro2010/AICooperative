@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect } from "react";
 import Image from "next/image";
-import { SendHorizonal, ImagePlus, X } from "lucide-react";
+import { SendHorizonal, ImagePlus, X, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -12,6 +12,9 @@ import type { useChats } from "@/hooks/use-chats";
 import { aiChatPersonality } from "@/ai/flows/ai-chat-personality";
 import { personalities } from "@/lib/personalities";
 import type { Message } from "@/lib/types";
+import { useSettings } from "@/hooks/use-settings";
+import Link from "next/link";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 type ChatViewProps = ReturnType<typeof useChats>;
 
@@ -23,6 +26,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
   const formRef = useRef<HTMLFormElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const { settings, isLoaded: settingsLoaded } = useSettings();
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -32,6 +36,16 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
       });
     }
   }, [activeChat?.messages]);
+  
+  const isApiKeyMissing = React.useMemo(() => {
+    if (!settingsLoaded || !activeChat) return false;
+    const model = activeChat.model;
+    if (model === "gemini" && !settings.geminiApiKey) return true;
+    if (model === "chatgpt" && !settings.chatgptApiKey) return true;
+    if (model === "claude" && !settings.claudeApiKey) return true;
+    if (model === "automatic" && !settings.geminiApiKey && !settings.chatgptApiKey && !settings.claudeApiKey) return true;
+    return false;
+  }, [settings, activeChat, settingsLoaded]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -52,6 +66,15 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if ((!input.trim() && !image) || !activeChat || isResponding) return;
+
+    if (isApiKeyMissing) {
+      toast({
+        title: "Falta la clave de API",
+        description: "Por favor, configura la clave de API para el modelo seleccionado en los ajustes.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const userInput = input;
     const userImage = image;
@@ -126,65 +149,75 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
         </div>
       </ScrollArea>
       <div className="p-4 border-t">
-        <form
-          ref={formRef}
-          onSubmit={handleSubmit}
-          className="relative"
-        >
-          {image && (
-            <div className="relative mb-2 w-24 h-24">
-              <Image src={image.url} alt="Image preview" layout="fill" objectFit="cover" className="rounded-md" />
+        {isApiKeyMissing ? (
+            <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Falta la clave de API</AlertTitle>
+                <AlertDescription>
+                    Por favor, ve a <Link href="/settings" className="font-semibold underline">Ajustes</Link> para configurar la clave de API para el modelo de este chat.
+                </AlertDescription>
+            </Alert>
+        ) : (
+          <form
+            ref={formRef}
+            onSubmit={handleSubmit}
+            className="relative"
+          >
+            {image && (
+              <div className="relative mb-2 w-24 h-24">
+                <Image src={image.url} alt="Image preview" layout="fill" objectFit="cover" className="rounded-md" />
+                <Button
+                  size="icon"
+                  variant="destructive"
+                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                  onClick={() => setImage(null)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+            <Textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Escribe un mensaje..."
+              className="pr-28 min-h-[60px] resize-none"
+              disabled={isResponding}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  formRef.current?.requestSubmit();
+                }
+              }}
+            />
+            <div className="absolute top-1/2 right-3 -translate-y-1/2 flex items-center gap-2">
+              <input
+                type="file"
+                ref={imageInputRef}
+                onChange={handleImageChange}
+                className="hidden"
+                accept="image/*"
+              />
               <Button
+                type="button"
+                variant="ghost"
                 size="icon"
-                variant="destructive"
-                className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-                onClick={() => setImage(null)}
+                onClick={() => imageInputRef.current?.click()}
+                disabled={isResponding}
+                aria-label="Adjuntar imagen"
               >
-                <X className="h-4 w-4" />
+                <ImagePlus className="h-5 w-5" />
+              </Button>
+              <Button
+                type="submit"
+                size="icon"
+                disabled={(!input.trim() && !image) || isResponding}
+                aria-label="Enviar mensaje"
+              >
+                <SendHorizonal className="h-5 w-5" />
               </Button>
             </div>
-          )}
-          <Textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Escribe un mensaje..."
-            className="pr-28 min-h-[60px] resize-none"
-            disabled={isResponding}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                formRef.current?.requestSubmit();
-              }
-            }}
-          />
-          <div className="absolute top-1/2 right-3 -translate-y-1/2 flex items-center gap-2">
-             <input
-              type="file"
-              ref={imageInputRef}
-              onChange={handleImageChange}
-              className="hidden"
-              accept="image/*"
-            />
-             <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => imageInputRef.current?.click()}
-              disabled={isResponding}
-              aria-label="Adjuntar imagen"
-            >
-              <ImagePlus className="h-5 w-5" />
-            </Button>
-            <Button
-              type="submit"
-              size="icon"
-              disabled={(!input.trim() && !image) || isResponding}
-              aria-label="Enviar mensaje"
-            >
-              <SendHorizonal className="h-5 w-5" />
-            </Button>
-          </div>
-        </form>
+          </form>
+        )}
       </div>
     </div>
   );
