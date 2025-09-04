@@ -110,7 +110,7 @@ export default function SidebarContent({
     <div className="flex flex-col h-full p-2">
       <Dialog open={newChatDialogOpen} onOpenChange={setNewChatDialogOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" className="w-full justify-start">
+          <Button className="w-full justify-start">
             <Plus className="mr-2" />
             Nuevo Chat
           </Button>
@@ -154,7 +154,6 @@ export default function SidebarContent({
                 onClick={() => setActiveChatId(chat.id)}
                 isActive={chat.id === activeChatId}
                 tooltip={chat.name}
-                className="pr-8"
               >
                 <Icon />
                 <span>{chat.name}</span>

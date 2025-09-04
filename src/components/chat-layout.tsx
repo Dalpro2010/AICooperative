@@ -53,10 +53,10 @@ export default function ChatLayout(props: ChatLayoutProps) {
         </Sidebar>
 
         <SidebarInset className="p-0 flex flex-col">
-          <header className="flex items-center gap-2 p-2 border-b h-14">
+          <header className="flex items-center gap-2 p-3 border-b h-14">
             <SidebarTrigger className="md:hidden" />
             <h2 className="text-lg font-semibold font-headline truncate">
-              {activeChat?.name || "Bienvenido"}
+              {activeChat?.name || "Welcome"}
             </h2>
           </header>
           <main className="flex-1 overflow-y-auto">

@@ -23,32 +23,30 @@ export default function ChatMessage({ message, personality }: ChatMessageProps) 
       )}
     >
       {!isUser && (
-        <Avatar className="h-8 w-8 border bg-card">
-            <AvatarImage asChild>
-                <div className="flex h-full w-full items-center justify-center bg-background">
-                    <Icon className="h-5 w-5 text-accent" />
-                </div>
-            </AvatarImage>
-            <AvatarFallback>
-                {personality?.name[0] || "A"}
-            </AvatarFallback>
+        <Avatar className="h-8 w-8 border bg-card shrink-0">
+          <AvatarImage asChild>
+            <div className="flex h-full w-full items-center justify-center bg-primary/10">
+              <Icon className="h-5 w-5 text-primary" />
+            </div>
+          </AvatarImage>
+          <AvatarFallback>{personality?.name[0] || "A"}</AvatarFallback>
         </Avatar>
       )}
       <div
         className={cn(
-          "max-w-[75%] rounded-lg p-3 text-sm",
+          "max-w-[80%] rounded-xl p-3 px-4 text-sm shadow-sm",
           isUser
-            ? "bg-primary text-primary-foreground"
-            : "bg-card"
+            ? "bg-primary text-primary-foreground rounded-br-none"
+            : "bg-card rounded-bl-none border"
         )}
       >
         {message.isLoading ? (
-            <div className="space-y-2">
-                <Skeleton className="h-4 w-[250px] bg-muted-foreground/20" />
-                <Skeleton className="h-4 w-[200px] bg-muted-foreground/20" />
-            </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-[250px] bg-muted-foreground/20" />
+            <Skeleton className="h-4 w-[200px] bg-muted-foreground/20" />
+          </div>
         ) : (
-          <p className="whitespace-pre-wrap">{message.content}</p>
+          <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
         )}
       </div>
     </div>
