@@ -207,7 +207,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Pregunta lo que quieras"
-                className="pr-20 min-h-0 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0 p-2"
+                className="pr-20 min-h-0 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0 p-2 focus-visible:ring-offset-0"
                 disabled={isResponding || !settingsLoaded}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
