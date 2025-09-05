@@ -32,6 +32,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
 
   const [isListening, setIsListening] = React.useState(false);
   const recognitionRef = React.useRef<SpeechRecognition | null>(null);
+  const finalTranscriptRef = React.useRef("");
 
 
   useEffect(() => {
@@ -51,6 +52,10 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
         recognition.interimResults = true;
         recognition.lang = 'es-ES';
 
+        recognition.onstart = () => {
+          finalTranscriptRef.current = input;
+        }
+
         recognition.onresult = (event) => {
             let interimTranscript = '';
             let finalTranscript = '';
@@ -61,7 +66,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
                     interimTranscript += event.results[i][0].transcript;
                 }
             }
-            setInput(prevInput => prevInput + finalTranscript);
+            setInput(finalTranscriptRef.current + finalTranscript + interimTranscript);
         };
         
         recognition.onend = () => {
@@ -82,7 +87,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
     } else {
         console.warn("Speech Recognition API not supported in this browser.");
     }
-  }, [toast]);
+  }, [toast, input]);
 
   const toggleListening = () => {
     if (!recognitionRef.current) {
