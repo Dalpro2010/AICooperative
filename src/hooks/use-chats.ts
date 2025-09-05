@@ -16,6 +16,7 @@ export function useChats() {
       if (storedChats) {
         const parsedChats: Chat[] = JSON.parse(storedChats);
         setChats(parsedChats);
+        // Set active chat only if one isn't already set, and there are chats available.
         if (parsedChats.length > 0 && !activeChatId) {
           const firstChat = parsedChats.sort((a, b) => {
             if (a.isPinned && !b.isPinned) return -1;
@@ -52,23 +53,21 @@ export function useChats() {
   }, [chats, isLoaded]);
 
   const createChat = useCallback((personality: AIPersonality, model: AIModel) => {
-    setChats((prevChats) => {
-      const newChatName = "Nuevo Chat";
-      const existingNewChats = prevChats.filter(chat => chat.name.startsWith(newChatName)).length;
-      const newChat: Chat = {
-        id: crypto.randomUUID(),
-        name: existingNewChats > 0 ? `${newChatName} ${existingNewChats + 1}` : newChatName,
-        personalityId: personality.id,
-        messages: [],
-        createdAt: new Date().toISOString(),
-        model: model,
-        isPinned: false,
-      };
-      const updatedChats = [newChat, ...prevChats];
-      setActiveChatId(newChat.id);
-      return updatedChats;
-    });
-  }, []);
+    const newChatName = "Nuevo Chat";
+    const existingNewChats = chats.filter(chat => chat.name.startsWith(newChatName)).length;
+    const newChat: Chat = {
+      id: crypto.randomUUID(),
+      name: existingNewChats > 0 ? `${newChatName} ${existingNewChats + 1}` : newChatName,
+      personalityId: personality.id,
+      messages: [],
+      createdAt: new Date().toISOString(),
+      model: model,
+      isPinned: false,
+    };
+    
+    setChats(prevChats => [newChat, ...prevChats]);
+    setActiveChatId(newChat.id);
+  }, [chats]);
 
   const deleteChat = useCallback((chatId: string) => {
     setChats((prevChats) => {
