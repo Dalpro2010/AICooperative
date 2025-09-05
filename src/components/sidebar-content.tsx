@@ -41,8 +41,6 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import type { useChats } from "@/hooks/use-chats";
 
-type SidebarContentProps = ReturnType<typeof useChats>;
-
 function InstructionsDialog({
   instructions,
   onSave,
@@ -265,7 +263,7 @@ export default function SidebarContent({
 
           return (
             <React.Fragment key={chat.id}>
-              {showSeparator && <SidebarSeparator className="my-2" />}
+              {showSeparator && <SidebarSeparator className="my-2 bg-sidebar-border/60" />}
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={() => setActiveChatId(chat.id)}
