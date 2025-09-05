@@ -208,7 +208,10 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage, re
 
       if (isFirstMessage) {
         try {
-          const titleResponse = await generateChatTitle({ userMessage: userInput });
+          const titleResponse = await generateChatTitle({ 
+            userMessage: userInput,
+            language: settings.language,
+          });
           if (titleResponse.title) {
             renameChat(activeChat.id, titleResponse.title);
           }
@@ -290,7 +293,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage, re
                 type="button"
                 variant="ghost"
                 size="icon"
-                onClick={() => imageInputRef.current?.click()}
+                onClick={() => imageInput.current?.click()}
                 disabled={isResponding || !settingsLoaded}
                 aria-label="Adjuntar imagen"
                 className="shrink-0 rounded-full bg-muted hover:bg-muted"

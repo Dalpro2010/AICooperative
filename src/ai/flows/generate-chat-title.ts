@@ -11,8 +11,17 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+const languageMap: Record<string, string> = {
+  es: 'Spanish',
+  en: 'English',
+  fr: 'French',
+  de: 'German',
+  pt: 'Portuguese',
+};
+
 const GenerateChatTitleInputSchema = z.object({
   userMessage: z.string().describe('The first message from the user in the conversation.'),
+  language: z.string().optional().describe('The language for the title (e.g., "es", "en").'),
 });
 export type GenerateChatTitleInput = z.infer<typeof GenerateChatTitleInputSchema>;
 
@@ -31,6 +40,10 @@ const prompt = ai.definePrompt({
   output: {schema: GenerateChatTitleOutputSchema},
   prompt: `Based on the following user message, create a short, relevant title for the chat conversation. The title should be 2-4 words long.
 
+{{#if language}}
+The title must be in {{lookup languageMap language}}.
+{{/if}}
+
 User Message:
 "{{{userMessage}}}"
 
@@ -45,7 +58,12 @@ const generateChatTitleFlow = ai.defineFlow(
   },
   async input => {
     // Only use a fast model for this simple task
-    const {output} = await prompt(input, { model: 'googleai/gemini-2.5-flash'});
+    const {output} = await prompt(input, { 
+        model: 'googleai/gemini-2.5-flash',
+        helpers: {
+            languageMap: (key: string) => languageMap[key] || 'the specified language',
+        }
+    });
     return output!;
   }
 );
