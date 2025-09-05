@@ -7,6 +7,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarMenuAction,
+  SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { personalities, models } from "@/lib/personalities";
@@ -39,6 +40,8 @@ import {
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import type { useChats } from "@/hooks/use-chats";
+
+type SidebarContentProps = ReturnType<typeof useChats>;
 
 function InstructionsDialog({
   instructions,
@@ -250,7 +253,10 @@ export default function SidebarContent({
     <div className="flex flex-col h-full p-2">
       <NewChatDialog createChat={createChat} />
       <SidebarMenu className="mt-4 flex-1">
-        {chats.map((chat) => {
+        {chats.map((chat, index) => {
+          const prevChat = index > 0 ? chats[index - 1] : null;
+          const showSeparator = prevChat && prevChat.isPinned && !chat.isPinned;
+
           const personality = personalities.find(
             (p) => p.id === chat.personalityId
           );
@@ -258,74 +264,78 @@ export default function SidebarContent({
           const Icon = modelInfo?.icon || personalities[personalities.length-1].icon;
 
           return (
-            <SidebarMenuItem key={chat.id}>
-              <SidebarMenuButton
-                onClick={() => setActiveChatId(chat.id)}
-                isActive={chat.id === activeChatId}
-                tooltip={chat.name}
-              >
-                <Icon />
-                <span>{chat.name}</span>
-                {chat.isPinned && <Pin className="ml-auto h-4 w-4 text-primary" />}
-              </SidebarMenuButton>
+            <React.Fragment key={chat.id}>
+              {showSeparator && <SidebarSeparator className="my-2" />}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => setActiveChatId(chat.id)}
+                  isActive={chat.id === activeChatId}
+                  tooltip={chat.name}
+                >
+                  <Icon />
+                  <span>{chat.name}</span>
+                  {chat.isPinned && <Pin className="ml-auto h-4 w-4 text-primary" />}
+                </SidebarMenuButton>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <SidebarMenuAction showOnHover>
-                    <MoreHorizontal />
-                  </SidebarMenuAction>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => togglePinChat(chat.id)}>
-                    <Pin className="mr-2 h-4 w-4" />
-                    <span>{chat.isPinned ? "Desfijar" : "Fijar"}</span>
-                  </DropdownMenuItem>
-                  <RenameChatDialog
-                    chatName={chat.name}
-                    onRename={(newName) => renameChat(chat.id, newName)}
-                  />
-                   <InstructionsDialog
-                    instructions={chat.customInstructions || ''}
-                    onSave={(newInstructions) =>
-                      setCustomInstructions(chat.id, newInstructions)
-                    }
-                  />
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onSelect={(e) => e.preventDefault()}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        <span>Eliminar</span>
-                      </DropdownMenuItem>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>
-                          ¿Estás seguro de que quieres eliminar este chat?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Esta acción no se puede deshacer. Esto eliminará
-                          permanentemente la conversación.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => deleteChat(chat.id)}
-                          className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <SidebarMenuAction showOnHover>
+                      <MoreHorizontal />
+                    </SidebarMenuAction>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => togglePinChat(chat.id)}>
+                      <Pin className="mr-2 h-4 w-4" />
+                      <span>{chat.isPinned ? "Desfijar" : "Fijar"}</span>
+                    </DropdownMenuItem>
+                    <RenameChatDialog
+                      chatName={chat.name}
+                      onRename={(newName) => renameChat(chat.id, newName)}
+                    />
+                    <InstructionsDialog
+                      instructions={chat.customInstructions || ''}
+                      onSave={(newInstructions) =>
+                        setCustomInstructions(chat.id, newInstructions)
+                      }
+                    />
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onSelect={(e) => e.preventDefault()}
                         >
-                          Eliminar
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </SidebarMenuItem>
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          <span>Eliminar</span>
+                        </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            ¿Estás seguro de que quieres eliminar este chat?
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta acción no se puede deshacer. Esto eliminará
+                            permanentemente la conversación.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteChat(chat.id)}
+                            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                          >
+                            Eliminar
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </SidebarMenuItem>
+            </React.Fragment>
           );
         })}
       </SidebarMenu>
     </div>
   );
+}
