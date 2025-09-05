@@ -16,6 +16,7 @@ import type { Message, AIModel } from "@/lib/types";
 import { useSettings } from "@/hooks/use-settings.tsx";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import { cn } from "@/lib/utils";
 
 type ChatViewProps = ReturnType<typeof useChats>;
 
@@ -29,6 +30,10 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { settings, isLoaded: settingsLoaded } = useSettings();
 
+  const [isListening, setIsListening] = React.useState(false);
+  const recognitionRef = React.useRef<SpeechRecognition | null>(null);
+
+
   useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({
@@ -38,6 +43,66 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
     }
   }, [activeChat?.messages]);
   
+  useEffect(() => {
+    if (typeof window !== "undefined" && ("SpeechRecognition" in window || "webkitSpeechRecognition" in window)) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'es-ES';
+
+        recognition.onresult = (event) => {
+            let interimTranscript = '';
+            let finalTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript;
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                }
+            }
+            setInput(prevInput => prevInput + finalTranscript);
+        };
+        
+        recognition.onend = () => {
+            setIsListening(false);
+        };
+
+        recognition.onerror = (event) => {
+          console.error("Speech recognition error", event.error);
+          toast({
+            title: "Error de reconocimiento de voz",
+            description: `Ocurrió un error: ${event.error}`,
+            variant: "destructive",
+          });
+          setIsListening(false);
+        };
+
+        recognitionRef.current = recognition;
+    } else {
+        console.warn("Speech Recognition API not supported in this browser.");
+    }
+  }, [toast]);
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) {
+      toast({
+        title: "No soportado",
+        description: "El reconocimiento de voz no es compatible con tu navegador.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      recognitionRef.current.start();
+    }
+    setIsListening(!isListening);
+  };
+
+
   const availableModels = React.useMemo(() => {
     if (!settingsLoaded) return [];
     const models: AIModel[] = [];
@@ -192,7 +257,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
                 className="hidden"
                 accept="image/*"
               />
-              <Button
+               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
@@ -224,7 +289,11 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
                     size="icon"
                     disabled={isResponding || !settingsLoaded}
                     aria-label="Entrada de voz"
-                    className="shrink-0 rounded-full bg-muted hover:bg-muted"
+                    onClick={toggleListening}
+                    className={cn(
+                      "shrink-0 rounded-full bg-muted hover:bg-muted",
+                      isListening && "bg-primary/20 text-primary animate-pulse"
+                    )}
                 >
                     <Mic />
                 </Button>
