@@ -11,6 +11,7 @@ import ChatMessage from "@/components/chat-message";
 import { useToast } from "@/hooks/use-toast";
 import type { useChats } from "@/hooks/use-chats";
 import { aiChatPersonality } from "@/ai/flows/ai-chat-personality";
+import { generateChatTitle } from "@/ai/flows/generate-chat-title";
 import { personalities } from "@/lib/personalities";
 import type { Message, AIModel } from "@/lib/types";
 import { useSettings } from "@/hooks/use-settings.tsx";
@@ -20,7 +21,7 @@ import { cn } from "@/lib/utils";
 
 type ChatViewProps = ReturnType<typeof useChats>;
 
-export default function ChatView({ activeChat, addMessage, updateLastMessage }: ChatViewProps) {
+export default function ChatView({ activeChat, addMessage, updateLastMessage, renameChat }: ChatViewProps) {
   const { toast } = useToast();
   const [input, setInput] = React.useState("");
   const [isResponding, setIsResponding] = React.useState(false);
@@ -161,6 +162,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
 
     const userInput = input;
     const userImage = image;
+    const isFirstMessage = activeChat.messages.length === 0;
 
     setInput("");
     setImage(null);
@@ -203,6 +205,19 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
         content: response.response,
         isLoading: false,
       });
+
+      if (isFirstMessage) {
+        try {
+          const titleResponse = await generateChatTitle({ userMessage: userInput });
+          if (titleResponse.title) {
+            renameChat(activeChat.id, titleResponse.title);
+          }
+        } catch (titleError) {
+          console.error("Error generating chat title:", titleError);
+          // We don't show a toast here as it's a non-critical background task
+        }
+      }
+
     } catch (error) {
       console.error("Error calling AI:", error);
       updateLastMessage(activeChat.id, {
