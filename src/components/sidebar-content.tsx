@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { MoreHorizontal, Plus, Trash2, Edit, ArrowLeft } from "lucide-react";
+import { MoreHorizontal, Plus, Trash2, Edit, ArrowLeft, Pin } from "lucide-react";
 import {
   SidebarMenu,
   SidebarMenuItem,
@@ -38,6 +38,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "./ui/input";
 import type { useChats } from "@/hooks/use-chats";
+
+type SidebarContentProps = ReturnType<typeof useChats>;
+
 
 function RenameChatDialog({
   chatName,
@@ -186,6 +189,7 @@ export default function SidebarContent({
   deleteChat,
   renameChat,
   setActiveChatId,
+  togglePinChat
 }: SidebarContentProps) {
 
   return (
@@ -208,6 +212,7 @@ export default function SidebarContent({
               >
                 <Icon />
                 <span>{chat.name}</span>
+                {chat.isPinned && <Pin className="ml-auto h-4 w-4 text-primary" />}
               </SidebarMenuButton>
 
               <DropdownMenu>
@@ -217,6 +222,10 @@ export default function SidebarContent({
                   </SidebarMenuAction>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => togglePinChat(chat.id)}>
+                    <Pin className="mr-2 h-4 w-4" />
+                    <span>{chat.isPinned ? "Desfijar" : "Fijar"}</span>
+                  </DropdownMenuItem>
                   <RenameChatDialog
                     chatName={chat.name}
                     onRename={(newName) => renameChat(chat.id, newName)}

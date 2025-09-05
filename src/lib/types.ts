@@ -25,6 +25,7 @@ export type Chat = {
   messages: Message[];
   createdAt: string;
   model: AIModel;
+  isPinned?: boolean;
 };
 
 export type AppSettings = {

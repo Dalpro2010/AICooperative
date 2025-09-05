@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import type { Chat, Message, AIPersonality, AIModel } from "@/lib/types";
 
 const CHATS_STORAGE_KEY = "aiCooperativeChats";
@@ -54,6 +54,7 @@ export function useChats() {
       messages: [],
       createdAt: new Date().toISOString(),
       model: model,
+      isPinned: false,
     };
     setChats((prevChats) => [newChat, ...prevChats]);
     setActiveChatId(newChat.id);
@@ -73,6 +74,14 @@ export function useChats() {
     setChats((prevChats) =>
       prevChats.map((chat) =>
         chat.id === chatId ? { ...chat, name: newName } : chat
+      )
+    );
+  }, []);
+
+  const togglePinChat = useCallback((chatId: string) => {
+    setChats((prevChats) =>
+      prevChats.map((chat) =>
+        chat.id === chatId ? { ...chat, isPinned: !chat.isPinned } : chat
       )
     );
   }, []);
@@ -102,10 +111,18 @@ export function useChats() {
     );
   }, []);
   
+  const sortedChats = useMemo(() => {
+    return [...chats].sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }, [chats]);
+  
   const activeChat = chats.find((chat) => chat.id === activeChatId);
 
   return {
-    chats,
+    chats: sortedChats,
     activeChat,
     activeChatId,
     isLoaded,
@@ -115,5 +132,6 @@ export function useChats() {
     addMessage,
     updateLastMessage,
     setActiveChatId,
+    togglePinChat,
   };
 }
