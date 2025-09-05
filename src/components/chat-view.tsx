@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useRef, useEffect } from "react";
@@ -183,20 +184,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
                 </Button>
               </div>
             )}
-            <Textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Escribe un mensaje..."
-              className="pr-28 min-h-[60px] resize-none"
-              disabled={isResponding || !settingsLoaded}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  formRef.current?.requestSubmit();
-                }
-              }}
-            />
-            <div className="absolute top-1/2 right-3 -translate-y-1/2 flex items-center gap-2">
+            <div className="relative flex w-full items-end gap-2">
               <input
                 type="file"
                 ref={imageInputRef}
@@ -211,14 +199,29 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
                 onClick={() => imageInputRef.current?.click()}
                 disabled={isResponding || !settingsLoaded}
                 aria-label="Adjuntar imagen"
+                className="shrink-0"
               >
                 <ImagePlus />
               </Button>
+              <Textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Escribe un mensaje..."
+                className="pr-16 min-h-[60px] resize-none"
+                disabled={isResponding || !settingsLoaded}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    formRef.current?.requestSubmit();
+                  }
+                }}
+              />
               <Button 
                 type="submit" 
                 size="icon" 
                 disabled={(!input.trim() && !image) || isResponding || !settingsLoaded}
                 aria-label="Enviar mensaje"
+                className="absolute top-1/2 right-3 -translate-y-1/2"
               >
                 <SendHorizonal />
               </Button>
