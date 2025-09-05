@@ -3,6 +3,7 @@ import { Inter, Space_Grotesk } from 'next/font/google';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { SettingsProvider } from '@/hooks/use-settings';
+import { ThemeProvider } from '@/components/theme-provider';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-space-grotesk' })
@@ -25,10 +26,17 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className={`${inter.variable} ${spaceGrotesk.variable} font-body antialiased`}>
-        <SettingsProvider>
-          {children}
-          <Toaster />
-        </SettingsProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <SettingsProvider>
+            {children}
+            <Toaster />
+          </SettingsProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
