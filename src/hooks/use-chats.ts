@@ -17,7 +17,12 @@ export function useChats() {
         const parsedChats: Chat[] = JSON.parse(storedChats);
         setChats(parsedChats);
         if (parsedChats.length > 0 && !activeChatId) {
-          setActiveChatId(parsedChats[0].id);
+          const firstChat = parsedChats.sort((a, b) => {
+            if (a.isPinned && !b.isPinned) return -1;
+            if (!a.isPinned && b.isPinned) return 1;
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          })[0];
+          setActiveChatId(firstChat.id);
         }
       }
     } catch (error) {
@@ -69,7 +74,12 @@ export function useChats() {
     setChats((prevChats) => {
       const newChats = prevChats.filter((chat) => chat.id !== chatId);
       if (activeChatId === chatId) {
-        setActiveChatId(newChats.length > 0 ? newChats[0].id : null);
+        const sortedChats = [...newChats].sort((a, b) => {
+            if (a.isPinned && !b.isPinned) return -1;
+            if (!a.isPinned && b.isPinned) return 1;
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+        setActiveChatId(sortedChats.length > 0 ? sortedChats[0].id : null);
       }
       return newChats;
     });
@@ -124,7 +134,7 @@ export function useChats() {
     });
   }, [chats]);
   
-  const activeChat = chats.find((chat) => chat.id === activeChatId);
+  const activeChat = useMemo(() => chats.find((chat) => chat.id === activeChatId), [chats, activeChatId]);
 
   return {
     chats: sortedChats,
