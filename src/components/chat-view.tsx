@@ -28,6 +28,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
   const formRef = useRef<HTMLFormElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
+  const lastMessageRef = useRef<HTMLDivElement>(null);
   const { settings, isLoaded: settingsLoaded } = useSettings();
 
   const [isListening, setIsListening] = React.useState(false);
@@ -37,8 +38,8 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
 
 
   useEffect(() => {
-    if (viewportRef.current) {
-      viewportRef.current.scrollTop = viewportRef.current.scrollHeight;
+    if (lastMessageRef.current) {
+        lastMessageRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [activeChat?.messages]);
   
@@ -224,12 +225,13 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
     <div className="h-full flex flex-col">
       <ScrollArea className="flex-1" viewportRef={viewportRef}>
         <div className="space-y-6 p-4">
-          {activeChat.messages.map((message: Message) => (
-            <ChatMessage
-              key={message.id}
-              message={message}
-              personality={personalities.find(p => p.id === activeChat.personalityId)}
-            />
+          {activeChat.messages.map((message: Message, index) => (
+            <div key={message.id} ref={index === activeChat.messages.length - 1 ? lastMessageRef : null}>
+                <ChatMessage
+                message={message}
+                personality={personalities.find(p => p.id === activeChat.personalityId)}
+                />
+            </div>
           ))}
         </div>
       </ScrollArea>
