@@ -27,7 +27,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
   const [image, setImage] = React.useState<{ url: string; file: File } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
   const { settings, isLoaded: settingsLoaded } = useSettings();
 
   const [isListening, setIsListening] = React.useState(false);
@@ -37,11 +37,8 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
 
 
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({
-        top: scrollAreaRef.current.scrollHeight,
-        behavior: "smooth",
-      });
+    if (viewportRef.current) {
+      viewportRef.current.scrollTop = viewportRef.current.scrollHeight;
     }
   }, [activeChat?.messages]);
   
@@ -60,11 +57,9 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
         recognition.onresult = (event) => {
             if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
             let interimTranscript = '';
-            let finalTranscript = '';
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 if (event.results[i].isFinal) {
-                    finalTranscript += event.results[i][0].transcript;
-                    finalTranscriptRef.current += finalTranscript + ' ';
+                    finalTranscriptRef.current += event.results[i][0].transcript.trim() + ' ';
                 } else {
                     interimTranscript += event.results[i][0].transcript;
                 }
@@ -81,6 +76,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
         recognition.onend = () => {
             if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
             setIsListening(false);
+            finalTranscriptRef.current = "";
         };
 
         recognition.onerror = (event) => {
@@ -226,8 +222,8 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
 
   return (
     <div className="h-full flex flex-col">
-      <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-        <div className="space-y-6">
+      <ScrollArea className="flex-1" viewportRef={viewportRef}>
+        <div className="space-y-6 p-4">
           {activeChat.messages.map((message: Message) => (
             <ChatMessage
               key={message.id}
