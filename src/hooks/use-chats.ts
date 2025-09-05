@@ -101,6 +101,14 @@ export function useChats() {
     );
   }, []);
 
+  const setCustomInstructions = useCallback((chatId: string, instructions: string) => {
+    setChats((prevChats) =>
+      prevChats.map((chat) =>
+        chat.id === chatId ? { ...chat, customInstructions: instructions } : chat
+      )
+    );
+  }, []);
+
   const addMessage = useCallback((chatId: string, message: Omit<Message, 'id'>) => {
     const newMessage: Message = { ...message, id: crypto.randomUUID() };
     setChats((prevChats) =>
@@ -148,5 +156,6 @@ export function useChats() {
     updateLastMessage,
     setActiveChatId,
     togglePinChat,
+    setCustomInstructions,
   };
 }

@@ -26,10 +26,8 @@ export type Chat = {
   createdAt: string;
   model: AIModel;
   isPinned?: boolean;
+  customInstructions?: string;
 };
 
 export type AppSettings = {
-  geminiApiKey: string | null;
-  chatgptApiKey: string | null;
-  claudeApiKey: string | null;
-}
+  geminiApiKey: string

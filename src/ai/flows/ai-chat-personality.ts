@@ -22,7 +22,8 @@ const AIChatPersonalityInputSchema = z.object({
   photoDataUri: z.string().optional().describe(
     "A photo from the user, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
   ),
-  availableModels: z.array(z.enum(["gemini", "chatgpt", "claude"])).describe("A list of available models based on user's API keys.")
+  availableModels: z.array(z.enum(["gemini", "chatgpt", "claude"])).describe("A list of available models based on user's API keys."),
+  customInstructions: z.string().optional().describe('Custom instructions for the AI for this specific chat.'),
 });
 export type AIChatPersonalityInput = z.infer<typeof AIChatPersonalityInputSchema>;
 
@@ -40,6 +41,11 @@ const prompt = ai.definePrompt({
   input: {schema: AIChatPersonalityInputSchema},
   output: {schema: AIChatPersonalityOutputSchema},
   prompt: `You are an AI assistant with the personality of a {{{personality}}}. Your responses should reflect this persona.
+
+{{#if customInstructions}}
+Additionally, you must follow these special instructions for this chat:
+{{{customInstructions}}}
+{{/if}}
 
 Chat History:
 {{{chatHistory}}}

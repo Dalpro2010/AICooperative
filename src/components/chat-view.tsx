@@ -117,6 +117,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
         model: activeChat.model,
         photoDataUri: photoDataUri,
         availableModels: availableModels as ('gemini' | 'chatgpt' | 'claude')[],
+        customInstructions: activeChat.customInstructions,
       });
 
       updateLastMessage(activeChat.id, {
@@ -211,15 +212,15 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
                 disabled={isResponding || !settingsLoaded}
                 aria-label="Adjuntar imagen"
               >
-                <ImagePlus className="h-5 w-5" />
+                <ImagePlus />
               </Button>
-              <Button
-                type="submit"
-                size="icon"
+              <Button 
+                type="submit" 
+                size="icon" 
                 disabled={(!input.trim() && !image) || isResponding || !settingsLoaded}
                 aria-label="Enviar mensaje"
               >
-                <SendHorizonal className="h-5 w-5" />
+                <SendHorizonal />
               </Button>
             </div>
           </form>

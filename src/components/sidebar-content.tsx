@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { MoreHorizontal, Plus, Trash2, Edit, ArrowLeft, Pin } from "lucide-react";
+import { MoreHorizontal, Plus, Trash2, Edit, ArrowLeft, Pin, FileText } from "lucide-react";
 import {
   SidebarMenu,
   SidebarMenuItem,
@@ -37,9 +37,62 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "./ui/input";
+import { Textarea } from "./ui/textarea";
 import type { useChats } from "@/hooks/use-chats";
 
-type SidebarContentProps = ReturnType<typeof useChats>;
+function InstructionsDialog({
+  instructions,
+  onSave,
+}: {
+  instructions: string;
+  onSave: (newInstructions: string) => void;
+}) {
+  const [text, setText] = React.useState(instructions);
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(text);
+    setIsOpen(false);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+          <FileText className="mr-2 h-4 w-4" />
+          <span>Instrucciones</span>
+        </DropdownMenuItem>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Instrucciones del Chat</DialogTitle>
+          <DialogDescription>
+            Proporciona instrucciones específicas para esta conversación. La IA las seguirá.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Ej: Responde siempre en español y con un tono formal."
+            className="min-h-[150px]"
+          />
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button type="submit">Guardar</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 
 function RenameChatDialog({
@@ -189,7 +242,8 @@ export default function SidebarContent({
   deleteChat,
   renameChat,
   setActiveChatId,
-  togglePinChat
+  togglePinChat,
+  setCustomInstructions
 }: SidebarContentProps) {
 
   return (
@@ -230,6 +284,12 @@ export default function SidebarContent({
                     chatName={chat.name}
                     onRename={(newName) => renameChat(chat.id, newName)}
                   />
+                   <InstructionsDialog
+                    instructions={chat.customInstructions || ''}
+                    onSave={(newInstructions) =>
+                      setCustomInstructions(chat.id, newInstructions)
+                    }
+                  />
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <DropdownMenuItem
@@ -269,4 +329,3 @@ export default function SidebarContent({
       </SidebarMenu>
     </div>
   );
-}
