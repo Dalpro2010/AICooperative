@@ -235,6 +235,7 @@ function NewChatDialog({ createChat }: { createChat: (p: any, m: AIModel) => voi
   );
 }
 
+type SidebarContentProps = ReturnType<typeof useChats>;
 
 export default function SidebarContent({
   chats,
@@ -263,7 +264,7 @@ export default function SidebarContent({
 
           return (
             <React.Fragment key={chat.id}>
-              {showSeparator && <SidebarSeparator className="my-2 bg-sidebar-border/60" />}
+              {showSeparator && <SidebarSeparator className="my-2 bg-sidebar-border" />}
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={() => setActiveChatId(chat.id)}
