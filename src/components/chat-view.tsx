@@ -33,6 +33,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
   const [isListening, setIsListening] = React.useState(false);
   const recognitionRef = React.useRef<SpeechRecognition | null>(null);
   const finalTranscriptRef = React.useRef("");
+  const silenceTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
 
   useEffect(() => {
@@ -57,19 +58,28 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
         }
 
         recognition.onresult = (event) => {
+            if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
             let interimTranscript = '';
             let finalTranscript = '';
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 if (event.results[i].isFinal) {
                     finalTranscript += event.results[i][0].transcript;
+                    finalTranscriptRef.current += finalTranscript + ' ';
                 } else {
                     interimTranscript += event.results[i][0].transcript;
                 }
             }
-            setInput(finalTranscriptRef.current + finalTranscript + interimTranscript);
+            setInput(finalTranscriptRef.current + interimTranscript);
         };
         
+        recognition.onspeechend = () => {
+            silenceTimeoutRef.current = setTimeout(() => {
+                recognition.stop();
+            }, 5000);
+        };
+
         recognition.onend = () => {
+            if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
             setIsListening(false);
         };
 
