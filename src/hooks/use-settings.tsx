@@ -9,6 +9,7 @@ const defaultSettings: AppSettings = {
   geminiApiKey: null,
   chatgptApiKey: null,
   claudeApiKey: null,
+  language: 'es',
 };
 
 interface SettingsContextType {

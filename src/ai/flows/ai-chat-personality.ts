@@ -24,6 +24,7 @@ const AIChatPersonalityInputSchema = z.object({
   ),
   availableModels: z.array(z.enum(["gemini", "chatgpt", "claude"])).describe("A list of available models based on user's API keys."),
   customInstructions: z.string().optional().describe('Custom instructions for the AI for this specific chat.'),
+  language: z.string().optional().describe('The preferred language for the AI to respond in (e.g., "es", "en").'),
 });
 export type AIChatPersonalityInput = z.infer<typeof AIChatPersonalityInputSchema>;
 
@@ -36,11 +37,23 @@ export async function aiChatPersonality(input: AIChatPersonalityInput): Promise<
   return aiChatPersonalityFlow(input);
 }
 
+const languageMap: Record<string, string> = {
+  es: 'Spanish',
+  en: 'English',
+  fr: 'French',
+  de: 'German',
+  pt: 'Portuguese',
+};
+
 const prompt = ai.definePrompt({
   name: 'aiChatPersonalityPrompt',
   input: {schema: AIChatPersonalityInputSchema},
   output: {schema: AIChatPersonalityOutputSchema},
   prompt: `You are an AI assistant with the personality of a {{{personality}}}. Your responses should reflect this persona.
+
+{{#if language}}
+You must respond in {{lookup languageMap language}} unless the user explicitly asks for a different language in their message.
+{{/if}}
 
 {{#if customInstructions}}
 Additionally, you must follow these special instructions for this chat:
@@ -109,7 +122,11 @@ const aiChatPersonalityFlow = ai.defineFlow(
         }
     }
 
-    const {output} = await prompt(input);
+    const {output} = await prompt(input, {
+      helpers: {
+        languageMap: (key: string) => languageMap[key] || 'the specified language',
+      }
+    });
     return output!;
   }
 );

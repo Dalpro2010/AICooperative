@@ -74,7 +74,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
         
         recognition.onspeechend = () => {
             silenceTimeoutRef.current = setTimeout(() => {
-                recognition.stop();
+                if(recognitionRef.current) recognitionRef.current.stop();
             }, 5000);
         };
 
@@ -199,6 +199,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
         photoDataUri: photoDataUri,
         availableModels: availableModels as ('gemini' | 'chatgpt' | 'claude')[],
         customInstructions: activeChat.customInstructions,
+        language: settings.language,
       });
 
       updateLastMessage(activeChat.id, {

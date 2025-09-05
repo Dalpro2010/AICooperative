@@ -30,4 +30,8 @@ export type Chat = {
 };
 
 export type AppSettings = {
-  geminiApiKey: string
+  geminiApiKey: string | null;
+  chatgptApiKey: string | null;
+  claudeApiKey: string | null;
+  language?: string;
+};

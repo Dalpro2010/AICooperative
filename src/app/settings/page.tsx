@@ -14,6 +14,13 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useSettings } from "@/hooks/use-settings";
 import { useToast } from "@/hooks/use-toast";
 
@@ -26,7 +33,7 @@ export default function SettingsPage() {
     // The settings are already saved on change by the hook
     toast({
       title: "Ajustes guardados",
-      description: "Tus claves de API han sido guardadas correctamente.",
+      description: "Tus claves de API y ajustes han sido guardados correctamente.",
     });
     router.push("/");
   };
@@ -52,51 +59,88 @@ export default function SettingsPage() {
           <h1 className="text-xl font-semibold md:text-2xl">Ajustes</h1>
         </header>
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>API Keys</CardTitle>
-              <CardDescription>
-                Gestiona las claves de API para los diferentes modelos de IA.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form className="grid gap-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle>API Keys</CardTitle>
+                <CardDescription>
+                  Gestiona las claves de API para los diferentes modelos de IA.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form className="grid gap-6">
+                  <div className="grid gap-3">
+                    <Label htmlFor="gemini-api-key">Gemini API Key</Label>
+                    <Input
+                      id="gemini-api-key"
+                      type="password"
+                      placeholder="Introduce tu clave de API de Gemini"
+                      value={settings.geminiApiKey || ""}
+                      onChange={(e) =>
+                        setSetting("geminiApiKey", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div className="grid gap-3">
+                    <Label htmlFor="chatgpt-api-key">ChatGPT API Key</Label>
+                    <Input
+                      id="chatgpt-api-key"
+                      type="password"
+                      placeholder="Introduce tu clave de API de ChatGPT"
+                      value={settings.chatgptApiKey || ""}
+                      onChange={(e) =>
+                        setSetting("chatgptApiKey", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div className="grid gap-3">
+                    <Label htmlFor="claude-api-key">Claude API Key</Label>
+                    <Input
+                      id="claude-api-key"
+                      type="password"
+                      placeholder="Introduce tu clave de API de Claude"
+                      value={settings.claudeApiKey || ""}
+                      onChange={(e) =>
+                        setSetting("claudeApiKey", e.target.value)
+                      }
+                    />
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Preferencias</CardTitle>
+                <CardDescription>
+                  Ajustes de idioma y comportamiento.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
                 <div className="grid gap-3">
-                  <Label htmlFor="gemini-api-key">Gemini API Key</Label>
-                  <Input
-                    id="gemini-api-key"
-                    type="password"
-                    placeholder="Introduce tu clave de API de Gemini"
-                    value={settings.geminiApiKey || ""}
-                    onChange={(e) => setSetting("geminiApiKey", e.target.value)}
-                  />
+                  <Label htmlFor="language">Idioma de la Respuesta</Label>
+                  <Select
+                    value={settings.language || "es"}
+                    onValueChange={(value) => setSetting("language", value)}
+                  >
+                    <SelectTrigger id="language">
+                      <SelectValue placeholder="Seleccionar idioma" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="es">Español</SelectItem>
+                      <SelectItem value="en">Inglés</SelectItem>
+                      <SelectItem value="fr">Francés</SelectItem>
+                      <SelectItem value="de">Alemán</SelectItem>
+                      <SelectItem value="pt">Portugués</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="grid gap-3">
-                  <Label htmlFor="chatgpt-api-key">ChatGPT API Key</Label>
-                  <Input
-                    id="chatgpt-api-key"
-                    type="password"
-                    placeholder="Introduce tu clave de API de ChatGPT"
-                    value={settings.chatgptApiKey || ""}
-                    onChange={(e) => setSetting("chatgptApiKey", e.target.value)}
-                  />
-                </div>
-                <div className="grid gap-3">
-                  <Label htmlFor="claude-api-key">Claude API Key</Label>
-                  <Input
-                    id="claude-api-key"
-                    type="password"
-                    placeholder="Introduce tu clave de API de Claude"
-                    value={settings.claudeApiKey || ""}
-                    onChange={(e) => setSetting("claudeApiKey", e.target.value)}
-                  />
-                </div>
-              </form>
-            </CardContent>
-            <CardFooter className="border-t px-6 py-4">
-              <Button onClick={handleSave}>Guardar</Button>
-            </CardFooter>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="flex justify-start">
+            <Button onClick={handleSave}>Guardar y Volver</Button>
+          </div>
         </main>
       </div>
     </div>
