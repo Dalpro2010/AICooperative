@@ -47,17 +47,22 @@ export function useChats() {
   }, [chats, isLoaded]);
 
   const createChat = useCallback((personality: AIPersonality, model: AIModel) => {
-    const newChat: Chat = {
-      id: crypto.randomUUID(),
-      name: `Nuevo Chat - ${personality.name}`,
-      personalityId: personality.id,
-      messages: [],
-      createdAt: new Date().toISOString(),
-      model: model,
-      isPinned: false,
-    };
-    setChats((prevChats) => [newChat, ...prevChats]);
-    setActiveChatId(newChat.id);
+    setChats((prevChats) => {
+      const newChatName = "Nuevo Chat";
+      const existingNewChats = prevChats.filter(chat => chat.name.startsWith(newChatName)).length;
+      const newChat: Chat = {
+        id: crypto.randomUUID(),
+        name: existingNewChats > 0 ? `${newChatName} ${existingNewChats + 1}` : newChatName,
+        personalityId: personality.id,
+        messages: [],
+        createdAt: new Date().toISOString(),
+        model: model,
+        isPinned: false,
+      };
+      const updatedChats = [newChat, ...prevChats];
+      setActiveChatId(newChat.id);
+      return updatedChats;
+    });
   }, []);
 
   const deleteChat = useCallback((chatId: string) => {
