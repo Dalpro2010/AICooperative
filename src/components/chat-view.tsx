@@ -3,7 +3,7 @@
 
 import React, { useRef, useEffect } from "react";
 import Image from "next/image";
-import { SendHorizonal, ImagePlus, X, AlertTriangle } from "lucide-react";
+import { Plus, X, AlertTriangle, Mic, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -184,7 +184,7 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
                 </Button>
               </div>
             )}
-            <div className="relative flex w-full items-end gap-2">
+            <div className="flex w-full items-center gap-2 rounded-full bg-muted p-2">
               <input
                 type="file"
                 ref={imageInputRef}
@@ -199,15 +199,15 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
                 onClick={() => imageInputRef.current?.click()}
                 disabled={isResponding || !settingsLoaded}
                 aria-label="Adjuntar imagen"
-                className="shrink-0"
+                className="shrink-0 rounded-full bg-muted hover:bg-muted"
               >
-                <ImagePlus />
+                <Plus />
               </Button>
               <Textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Escribe un mensaje..."
-                className="pr-16 min-h-[60px] resize-none"
+                placeholder="Pregunta lo que quieras"
+                className="pr-20 min-h-0 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0 p-2"
                 disabled={isResponding || !settingsLoaded}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
@@ -215,16 +215,29 @@ export default function ChatView({ activeChat, addMessage, updateLastMessage }: 
                     formRef.current?.requestSubmit();
                   }
                 }}
+                rows={1}
               />
-              <Button 
-                type="submit" 
-                size="icon" 
-                disabled={(!input.trim() && !image) || isResponding || !settingsLoaded}
-                aria-label="Enviar mensaje"
-                className="absolute top-1/2 right-3 -translate-y-1/2"
-              >
-                <SendHorizonal />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    disabled={isResponding || !settingsLoaded}
+                    aria-label="Entrada de voz"
+                    className="shrink-0 rounded-full bg-muted hover:bg-muted"
+                >
+                    <Mic />
+                </Button>
+                <Button 
+                  type="submit" 
+                  size="icon" 
+                  disabled={(!input.trim() && !image) || isResponding || !settingsLoaded}
+                  aria-label="Enviar mensaje"
+                  className="shrink-0 rounded-full bg-muted hover:bg-muted"
+                >
+                  <Send />
+                </Button>
+              </div>
             </div>
           </form>
         )}
